@@ -36,7 +36,7 @@ const compile = parallel(styles, scripts, html);
 
 const useref = () => {
   return src('temp/*.html')
-    .pipe(plugins.useref({ searchPath: 'temp' }))
+    .pipe(plugins.useref({ searchPath: ['temp', '.'] }))
     .pipe(plugins.if(/\.js$/, plugins.uglify()))
     .pipe(plugins.if(/\.css$/, plugins.cleanCss()))
     .pipe(plugins.if(/\.html$/, plugins.htmlmin()))
@@ -138,5 +138,6 @@ module.exports = {
   serve,
   start,
   lint,
-  deploy
+  deploy,
+  useref
 };
