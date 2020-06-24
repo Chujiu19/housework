@@ -1,5 +1,6 @@
 const sass = require('node-sass');
 const fs = require('fs')
+const path = require('path');
 module.exports = grunt => {
   require('load-grunt-tasks')(grunt);
   grunt.initConfig({
@@ -66,8 +67,26 @@ module.exports = grunt => {
         src: 'src/**/*.html'
       }
     },
-    public: {
-      'src/public': 'dist/public'
+    copy: {
+      main: {
+        files: [
+          { expand: true, src: ['public/**/*'], dest: 'dist/' },
+        ],
+      },
+    },
+    htmlmin: {
+      main: {
+        options: {
+          removeComments: true,
+          collapseWhitespace: true
+        },
+        files: [{
+          expand: true,
+          cwd: 'temp',
+          src: ['**/*.html', '*.html'],
+          dest: 'dist'
+        }]
+      }
     }
     // imagemin: {
     //   main: {
@@ -84,11 +103,7 @@ module.exports = grunt => {
     //   }
     // }
   });
-  grunt.registerMultiTask('public', function () {
-    console.log(this.target + ': ' + this.data)
-    // fs.readFile()
-  })
   grunt.registerTask('compile', ['sass', 'babel', 'swigtemplates']);
-  grunt.registerTask('build', ['clean', 'compile', 'uglify', 'cssmin', 'public'])
+  grunt.registerTask('build', ['clean', 'compile', 'uglify', 'cssmin', 'htmlmin', 'copy'])
   grunt.registerTask('cleanAll', ['clean']);
 }

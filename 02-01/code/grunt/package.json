@@ -24,12 +24,9 @@
     "url": "https://zce.me"
   },
   "scripts": {
-    "clean": "gulp clean",
-    "lint": "gulp lint",
-    "serve": "gulp serve",
-    "build": "gulp build",
-    "start": "gulp start",
-    "deploy": "gulp deploy --production"
+    "clean": "grunt cleanAll",
+    "build": "grunt build",
+    "compile": "grunt compile"
   },
   "browserslist": [
     "last 1 version",
@@ -48,6 +45,7 @@
     "grunt": "^0.4.5",
     "grunt-babel": "^8.0.0",
     "grunt-contrib-clean": "^2.0.0",
+    "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-cssmin": "^3.0.0",
     "grunt-contrib-htmlmin": "^3.1.0",
     "grunt-contrib-imagemin": "^4.0.0",
