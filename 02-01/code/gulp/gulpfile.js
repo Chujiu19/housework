@@ -1,7 +1,5 @@
 "use strict"
 
-const { param } = require('jquery');
-
 // 实现这个项目的构建任务
 const { src, dest, series, parallel, watch } = require('gulp'),
   loadPlugins = require('gulp-load-plugins'),
@@ -27,6 +25,7 @@ const scripts = () => {
     .pipe(plugins.uglify())
     .pipe(dest('temp'));
 };
+
 const html = () => {
   return src(['src/**/*.html'], { base: 'src' })
     .pipe(plugins.swig({ defaults: { cache: false } }))
@@ -42,6 +41,7 @@ const useref = () => {
     .pipe(plugins.if(/\.html$/, plugins.htmlmin()))
     .pipe(dest('dist'));
 };
+
 const others = () => {
   return src(['src/assets/images/*', 'src/assets/fonts/*'], { base: "src" })
     .pipe(plugins.imagemin())
@@ -139,5 +139,6 @@ module.exports = {
   start,
   lint,
   deploy,
-  useref
+  useref,
+  compile
 };

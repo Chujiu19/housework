@@ -1,0 +1,12 @@
+{
+  "name": "create-template",
+  "version": "0.1.0",
+  "main": "index.js",
+  "bin": "main.js",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ejs": "^2.6.2",
+    "inquirer": "^7.0.0"
+  }
+}
