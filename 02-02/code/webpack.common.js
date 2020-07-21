@@ -1,13 +1,19 @@
 const path = require('path');
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
-    entry: './src/main.js',
+    entry: {
+        app: './src/main.js'
+    },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'bundle.js'
+        filename: '[name].js',
+        publicPath: "/"
     },
     module: {
         rules: [
+            { test: /\.vue$/, use: 'vue-loader' },
             {
                 test: /\.js$/,
                 exclude: /(node_modules|bower_components)/,
@@ -18,7 +24,10 @@ module.exports = {
                     }
                 }
             },
-            { test: /\.vue$/, use: 'vue-loader' },
+            {
+                test: /\.html$/,
+                use: 'html-loader'
+            },
             {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader']
@@ -30,16 +39,18 @@ module.exports = {
             {
                 test: /\.(png|jpe?g|gif)$/,
                 use: {
-                  loader: 'file-loader',
-                  options: {
-                    outputPath: 'img',
-                    name: '[name].[ext]'
-                  }
+                    loader: 'file-loader',
+                    options: {
+                        outputPath: 'img',
+                        name: '[name].[ext]'
+                    }
                 }
-              }
+            }
         ]
     },
     plugins: [
-        new VueLoaderPlugin()
+        new CleanWebpackPlugin(),
+        new VueLoaderPlugin(),
+        new HtmlWebpackPlugin()
     ]
 };
