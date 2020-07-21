@@ -16,7 +16,7 @@ module.exports = {
             { test: /\.vue$/, use: 'vue-loader' },
             {
                 test: /\.js$/,
-                exclude: /(node_modules|bower_components)/,
+                // exclude: /(node_modules|bower_components)/,
                 use: {
                     loader: 'babel-loader',
                     options: {
@@ -37,7 +37,7 @@ module.exports = {
                 use: ['style-loader', 'css-loader', 'less-loader']
             },
             {
-                test: /\.(png|jpe?g|gif)$/,
+                test: /\.(png|jpe?g|gif|ico)$/,
                 use: {
                     loader: 'file-loader',
                     options: {
@@ -51,6 +51,11 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin(),
         new VueLoaderPlugin(),
-        new HtmlWebpackPlugin()
+        new HtmlWebpackPlugin({
+            title: 'lalalalala',
+            filename: 'index.html',
+            template: 'public/index.html',
+            favicon: 'public/favicon.ico'
+        })
     ]
 };
