@@ -1,15 +1,20 @@
-const path = require('path');
-const VueLoaderPlugin = require('vue-loader/lib/plugin')
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path'),
+    webpack = require('webpack'),
+    VueLoaderPlugin = require('vue-loader/lib/plugin'),
+    HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
-    entry: {
-        app: './src/main.js'
-    },
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: '[name].js',
-        publicPath: "/"
+    entry: path.join(__dirname, 'src/main.js'),
+    optimization: {
+        splitChunks: {
+            cacheGroups: {
+                vendor: {
+                    test: /node_modules/,
+                    chunks: 'initial',
+                    name: 'vendor',
+                    priority: 10
+                }
+            }
+        }
     },
     module: {
         rules: [
@@ -25,10 +30,6 @@ module.exports = {
                 }
             },
             {
-                test: /\.html$/,
-                use: 'html-loader'
-            },
-            {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader']
             },
@@ -37,25 +38,33 @@ module.exports = {
                 use: ['style-loader', 'css-loader', 'less-loader']
             },
             {
-                test: /\.(png|jpe?g|gif|ico)$/,
-                use: {
-                    loader: 'file-loader',
-                    options: {
-                        outputPath: 'img',
-                        name: '[name].[ext]'
+                test: /\.(png|jpg|gif)$/,
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {
+                            esModule: false,
+                            limit: 10240,
+                            outputPath: 'assets/',
+                            name: '[name].[ext]'
+                        }
                     }
-                }
+                ]
+            },
+            {
+                test: /\.ico$/,
+                use: 'file-loader'
             }
         ]
     },
     plugins: [
-        new CleanWebpackPlugin(),
         new VueLoaderPlugin(),
         new HtmlWebpackPlugin({
-            title: 'lalalalala',
+            title: 'lalala',
             filename: 'index.html',
             template: 'public/index.html',
             favicon: 'public/favicon.ico'
-        })
+        }),
+
     ]
 };
