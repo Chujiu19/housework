@@ -1,6 +1,7 @@
 const path = require('path'),
     VueLoaderPlugin = require('vue-loader/lib/plugin'),
     HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 module.exports = {
     entry: path.join(__dirname, 'src/main.js'),
     optimization: {
@@ -49,15 +50,16 @@ module.exports = {
                         }
                     }
                 ]
-            },
-            {
-                test: /\.ico$/,
-                use: 'file-loader'
             }
         ]
     },
     plugins: [
         new VueLoaderPlugin(),
+        // new CopyPlugin({
+        //     patterns: [
+        //         { from: './public'}
+        //     ],
+        // }),
         new HtmlWebpackPlugin({
             title: 'lalala',
             filename: 'index.html',

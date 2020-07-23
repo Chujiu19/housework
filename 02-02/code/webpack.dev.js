@@ -23,23 +23,24 @@ module.exports = merge(common, {
     module: {
         rules: [
             {
-                rest: /.js$/,
+                test: /.js$/,
                 enforce: 'pre',
                 exclude: /node_modules/,
                 use: {
                     loader: 'eslint-loader',
                     options: {
                         fix: true,
+                        catch: true,
                         formatter: require('eslint-friendly-formatter')
                     }
                 }
-            },
+            }
         ]
     },
     plugins: [
         new webpack.HotModuleReplacementPlugin(),
         new webpack.DefinePlugin({
-            BASE_URL: JSON.stringify(config.dev.BASE_URL),
-        }),
-    ],
+            BASE_URL: JSON.stringify(config.dev.BASE_URL)
+        })
+    ]
 })

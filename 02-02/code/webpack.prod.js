@@ -1,6 +1,7 @@
 const common = require('./webpack.common.js');
 const { merge } = require('webpack-merge'),
     path = require('path'),
+    webpack = require('webpack'),
     config = require('./config.js'),
     { CleanWebpackPlugin } = require('clean-webpack-plugin')
 module.exports = merge(common, {
@@ -8,8 +9,7 @@ module.exports = merge(common, {
     devtool: 'cheap-module-eval-source-map',
     output: {
         path: path.resolve(__dirname, '../dist'),
-        filename: './js/[name]_[contentHash].js',
-        pubicPath: './'
+        filename: './js/[name]_[contentHash].js'
     },
     plugins: [
         new CleanWebpackPlugin({
