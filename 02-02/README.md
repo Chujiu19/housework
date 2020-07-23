@@ -15,8 +15,15 @@ plugin：监听webpack运行生命周期抛出的事件，通过webpackAPI可改
 
 思路
 
-loader：处理特定类型文件，针对文件的加载与处理
+loader：处理特定类型文件，针对文件的加载与处理，文件加载时检测文件类型，根据不同类型处理不同的文件
 
 （返回一段js代码， 多个loader可链式调用，调用顺序从后到前）
 
-plugin： 监听打包过程中泛事件，自定义构建流程到webpack打包过程中
+plugin： 通过在webpack生命周期中调用需要的钩子，自定义构建流程到webpack打包过程中
+
+##### 代码实现思路
+
+根据运行环境不同
+common: 通用处理 包括vue/es6/css/less/静态资源的加载及处理，根据index.html模板生成文件，传入title参数
+dev: 包含devServer，模块热替换, 启动服务进行eslint检测
+prod: 构建前清空原始dist目录
