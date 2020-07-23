@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "webpack-dev-server --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js",
-    "lint": "eslint --ext .js,.vue src/ --fix"
+    "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {
     "core-js": "^3.6.5",
