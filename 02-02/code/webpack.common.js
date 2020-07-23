@@ -1,5 +1,4 @@
 const path = require('path'),
-    webpack = require('webpack'),
     VueLoaderPlugin = require('vue-loader/lib/plugin'),
     HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
@@ -21,7 +20,7 @@ module.exports = {
             { test: /\.vue$/, use: 'vue-loader' },
             {
                 test: /\.js$/,
-                // exclude: /(node_modules|bower_components)/,
+                exclude: /node_modules/,
                 use: {
                     loader: 'babel-loader',
                     options: {

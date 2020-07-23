@@ -20,6 +20,22 @@ module.exports = merge(common, {
         hotOnly: true,
         overlay: true
     },
+    module: {
+        rules: [
+            {
+                rest: /.js$/,
+                enforce: 'pre',
+                exclude: /node_modules/,
+                use: {
+                    loader: 'eslint-loader',
+                    options: {
+                        fix: true,
+                        formatter: require('eslint-friendly-formatter')
+                    }
+                }
+            },
+        ]
+    },
     plugins: [
         new webpack.HotModuleReplacementPlugin(),
         new webpack.DefinePlugin({
