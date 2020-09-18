@@ -1,6 +1,6 @@
 
 let _Vue = null
-class VueRouter {
+export default class VueRouter {
     static install(Vue) {
         if (VueRouter.install.installed) {
             return;
@@ -19,7 +19,7 @@ class VueRouter {
         this.options = options
         this.routeMap = {}
         this.data = _Vue.observable({
-            current: "/"
+            current: options.defaultPath || '/'
         })
         this.init()
 

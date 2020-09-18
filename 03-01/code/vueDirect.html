@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="vue">
+        <div>v-model: {{name}}
+            <div><input v-model="name" type="text"></div>
+        </div>
+        <div>v-on: {{age}}
+            <div>click <button v-on:click="grow">add1</button></div>
+            <div v-on:mouseover="grow">mouseover <button>add1</button></div>
+        </div>
+        <div>v-html
+            <input type="textarea" v-model="box">
+            <div v-html="box"></div>
+        </div>
+    </div>
+    <script src="./main.js"></script>
+    <script>
+        new Vue({
+            el: '#vue',
+            data: {
+                name: 'Tom',
+                age: 12,
+                box: `<h1>ball</h1>`
+            },
+            methods: {
+                grow() {
+                    this.age++
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
