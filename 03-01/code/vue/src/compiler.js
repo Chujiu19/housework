@@ -1,4 +1,9 @@
 import Watcher from './watcher'
+import { creater, praser } from './praser'
+import { h } from 'snabbdom'
+
+
+
 
 function isTextNode(node) {
     return node && node.nodeType == 3
@@ -11,25 +16,56 @@ export default class Complier {
     constructor(vm) {
         this.vm = vm
         this.el = vm.$el
-        this.complie(this.el)
+
+        if (vm.options.render) {
+            this._vnode = vm.options.render((a, b, c) => creater(a, b, c))
+        } else if (this.el) {
+            this._vnode = praser(this.el)
+        }
+        this.complie(this._vnode)
     }
-    complie(el) {
-        Array.from(el.childNodes).forEach(node => {
-            if (isTextNode(node)) {
+    complie(vnode) {
+        if(vnode.tag) {
+            this.complieElement(vnode.children, vnode)
+        }else {
+            this.complieText(vnode)
+        }
+
+        export function vnode(sel, data, children, text, elm) {
+            const key = data === undefined ? undefined : data.key;
+            return { sel, data, children, text, elm, key };
+        }
+
+        Array.from(vnode.children).forEach(node => {
+            if (node.type == 3) {
                 this.complieText(node)
-            } else if (isElementNode(node)) {
+            } else if (node.type == 1) {
                 this.complieElement(node)
-            }
-            if (node.childNodes && node.childNodes.length) {
-                this.complie(node)
             }
         })
 
     }
-    complieElement(node) {
+    complieChildren(vnodes, PVnode) {
+        return vnodes.map(vnode => {
+            let {tag, data, children} = vnode
+           if(vnode.data) {
+                Object.keys(data).forEach(key => {
+                    
+                })
+           }
+
+
+
+        })
+    }
+    complieElement(vnodes, PVnode) {
+
+
+
+
         Array.from(node.attributes).forEach(attr => {
             let name = attr.name
-            if ( /^v-(\w+)/.test(name)) {
+            if (/^v-(\w+)/.test(name)) {
                 this.update(node, RegExp.$1, attr.value, name)
             }
         })

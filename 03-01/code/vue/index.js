@@ -1,6 +1,6 @@
 import Observer from './src/observer'
 import Compiler from './src/compiler'
-import { h } from 'snabbdom'
+
 
 export default class Vue {
     constructor(options) {
