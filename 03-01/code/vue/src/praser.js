@@ -7,76 +7,65 @@ function isText(node) {
 function isElement(node) {
     return node && node.nodeType == 1
 }
-<<<<<<< HEAD
-export praser(node) {
-    let render = `function(){return h(`
-    if (isElement(node)) {
-        render += tagName + ','
-        let props = {
-            attrs: {},
-            props: {}
-        }
+function bind(obj) {
+    return function (key) {
+        return obj[key].bind(obj)
+    }
+}
+
+export prase(node, pNode) {
+    if (isElement(node)){
         const { tagName, nodeType, attributes, children } = node
+        const params = {
+            props:[], 
+            attrs:[],
+            on:[]
+        }
+        let optStr = chStr = '', tagStr = tagName ? tagName.toLowerCase() :''
+        if(!tagName || tagName.test(/script|link/)) {
+            return `h('comment', null, '${tagName || '无入口节点'}')`
+        }
         Array.from(attributes).forEach((attr) => {
             const { name, value } = attr
             const reg = /^v-(\w+)(:\w+)?((?:\.\w+)*)$/
             if(name && reg.test(name)) {
                 const [,d, e, a] = name.match(reg)
                 if(d) {
-                    if(d == 'bind') props.props[e] = a
-                    if(d == 'on') props.props.on ? props.props.on[e] = (a())() : props.props.on = {e: a}
+                    if(d == 'bind') params.props.push(`${e}:this["${value}"]`)
+                    if(d == 'on')  params.events.push(`${e}:this["${value}"].bind(this,arguments)`)
+                }else{
+                    throw new Error('仅支持/^v-(\w+)(:\w+)?((?:\.\w+)*)$/格式属性')
                 }
             }else {
-                props.attrs[name] = value
-            }
-            if(attr.name.startWith('v-'))
-            attrMap[attr.name] = attr.value
-            return attrMap
-        }, {})
-        const children = Array.from(children).map(child => praser(child))
-=======
-
-export function praserHtml(node) {
-    if (isElement(node)) {
-        const { tagName, attributes, children } = node
-        const attrs = {}, directs = {}
-        Array.from(attributes).forEach(({ name, value }) => {
-            let reg = /^v-(.+)(?:.+)/
-            if (reg.test(name)) {
-                const [direct, attr] = name.match(reg)
-                directs[direct] = directs[direct] || []
-                directs[direct].push({
-                    attr: arg[1],
-                    value: `b_(c => ${value})`
-                })
-            } else {
-                attrs[name] = value
+                params.attrs.push(`${name}:"${value}"`)
             }
         })
->>>>>>> 9d398b81363250d5bf5fac684c6734819c11e848
-        return {
-            tag: String(tagName).toLowerCase(),
-            attrs,
-            directs,
-            children: Array.from(children).map(child => praser(child))
-        }
-    } else if (isText(node)) {
-        let content = node.testContent.trim()
-        let data = {}
-        if (content) {
+        optStr = Object.keys(params).filter((key) => {
+            return params[key].length > 0
+        }).map(key => {
+            return `${key}:{${params[key].join(',')}}`
+        }).join(',')
 
-            content = content.replace(/(\{\{).*?(\}\})/g, (attr) => {
-                const val = attr.slice(2, attr.length - 2)
-                const key = `R_(${val})`
-                data[key].push(val)
-                return key
-            })
+        if(children && children.length) chStr = Array.from(children).map(child => prase(child)).join(',')
+       return `h("${tagStr}", {${optStr}}, [${chStr}])`
+    }else if(isText(node)){
+        const { textContent } = node
+        const reg = /(\{\{.*?\}\})/g
+        let params = textContent
+        if(reg.test(params)) {
+            params = params.replace(reg, (val, i, str) => {
+                const fn = /[^\s\{\}]+/g.match(val).reduce((acc, cur) => {
+                    if(/^[\+\-\*\\\=]{0,2}(?:\=)$/.test(cur) || !isNaN(cur)) {
+                        return acc += cur
+                    }
+                        return `this[${cur}]`
+                }, '')
+                return `${i ? "'+": ''}(functtion(){return ${fn}}).call(this)${str.endWidth(val) ? '': "+'"}`
+            }) 
         }
-        return {
-            tag: '',
-            data,
-            children: content
-        }
+        return `h("text",{},'${params}')`
+    }else {
+        return `h("comment", {}, ${node && String(node)})`
     }
 }
 
