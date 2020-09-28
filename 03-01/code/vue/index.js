@@ -2,7 +2,7 @@ import Observer from './src/observer'
 import Compiler from './src/compiler'
 
 
-export default class Vue {
+default export class Vue {
     constructor(options) {
         this.$options = options
         this.$data = options.data || {}
