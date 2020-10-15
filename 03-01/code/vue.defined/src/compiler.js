@@ -1,33 +1,62 @@
 import Watcher from "./watcher";
-import preser from "./praser";
-import { init } from 'snabbdom/build/package/init'
-import { classModule } from 'snabbdom/build/package/modules/class'
-import { propsModule } from 'snabbdom/build/package/modules/props'
-import { styleModule } from 'snabbdom/build/package/modules/style'
-import { eventListenersModule } from 'snabbdom/build/package/modules/eventlisteners'
-import { h } from 'snabbdom/build/package/h'
+import parser from "./praser";
+import { init } from "snabbdom/build/package/init";
+import { classModule } from "snabbdom/build/package/modules/class";
+import { propsModule } from "snabbdom/build/package/modules/props";
+import { styleModule } from "snabbdom/build/package/modules/style";
+import { eventListenersModule } from "snabbdom/build/package/modules/eventlisteners";
+import { h } from "snabbdom/build/package/h";
 
-var patch = init([ // Init patch function with chosen modules
+var patch = init([
+  // Init patch function with chosen modules
   //   classModule, // makes it easy to toggle classess
   //   propsModule, // for setting properties on DOM elements
   //   styleModule, // handles styling on elements with support for animations
-  //   eventListenersModule, // attaches event listeners
+  eventListenersModule, // attaches event listeners
 ]);
+function getType(item) {
+  return Object.prototype.toString.call(item).toLowerCase();
+}
+function isObj(item) {
+  return getType(item) === "[object object]";
+}
+function isArr(item) {
+  return getType(item) === "[object array]";
+}
+function create(a, b, c) {
+  if (isObj(b)) {
+  }
+}
+
 export default class Complier {
   constructor(vm) {
     this.vm = vm;
     this.el = vm.$el;
     if (vm.$options.render) {
-      this._render = vm.$options.render((a, b, c) => h(a, b, c));
+      this._render = vm.$options.render;
     } else if (this.el) {
-      this._render = preser(this.el, vm);
+      this._render = parser(this.el);
     }
+    this.$creater = function (a, b, c) {
+      console.log(this,a, b, c,'b');
+      return h(a, b, c);
+    };
+    this._vnode = this._render(this.$creater);
     this.complie();
   }
   complie() {
-    this._vnode = this._render()
-    patch(this.el, this._vnode)
-    console.log(this._vnode);
+    let updateMap = {};
+    this._vnode.children.forEach((vnode) => {
+      let { props, on } = vnode.data || {};
+      if (props && isObj(props)) {
+        Object.keys(props).forEach((key) => {
+          updateMap[key] = updateMap[key] || [];
+          updateMap[key].push(vnode);
+        });
+      }
+    });
+
+    console.log(this._vnode, updateMap);
     //         if(vnode.tag) {
     //             this.complieElement(vnode.children, vnode)
     //         }else {
@@ -46,12 +75,13 @@ export default class Complier {
     //                 this.complieElement(node)
     //             }
     //         })
+    patch(this.el, this._vnode);
   }
   complieChildren(vnodes, PVnode) {
     return vnodes.map((vnode) => {
       let { tag, data, children } = vnode;
       if (vnode.data) {
-        Object.keys(data).forEach((key) => { });
+        Object.keys(data).forEach((key) => {});
       }
     });
   }
@@ -99,8 +129,8 @@ export default class Complier {
     let cb =
       typeof val === "function"
         ? () => {
-          val.call(this.vm);
-        }
+            val.call(this.vm);
+          }
         : null;
     cb && node.addEventListener(event, cb);
     new Watcher(this.vm, key, (newVal) => {
@@ -110,9 +140,10 @@ export default class Complier {
     });
   }
   _init(vnode) {
-    console.log(vnode, "vnode");
+    let { on, props } = vnode.data;
   }
-  _watch(){
-    console.log(arguments, 'watch')
+  _watch(vnode) {
+    const { data = {} } = vnode;
+    if (data) console.log(vnode, "watch");
   }
 }

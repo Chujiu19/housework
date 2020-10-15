@@ -34,9 +34,6 @@ class Vue {
             this[key] = methods[key]
         })
     }
-    createElement(a, b, c) {
-        return a === undefined ? vnode(a,b,[], c) : h(a, b, c)
-    }
 }
 
 window.Vue = Vue

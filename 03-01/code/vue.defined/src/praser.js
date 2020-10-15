@@ -5,7 +5,7 @@ function isElement(node) {
   return node && node.nodeType == 1;
 };
 
-function prase(node) {
+function parse(node, pNode) {
   if (isElement(node)) {
     const { tagName, attributes, childNodes } = node;
     const params = {
@@ -22,18 +22,19 @@ function prase(node) {
       if (name && reg.test(name)) {
         const [, d, e, a] = name.match(reg);
         if (d) {
-          if (d == "bind") params.props.push(`${e}:"${value}"`);
-          if (d == "on") params.on.push(`${e}:"${value}"`);
+          if (d == "bind") params.props.push(`${e}:this.${value}`);
+          if (d == "on") params.on.push(`${e}:this.${value}`);
+          if (d == "model") {
+            params.props.push(`value:this.${value}`);
+            params.on.push(`change(e){this.${value}=e.value}`)
+          }
         } else {
           throw new Error("仅支持/^v-(w+)(:w+)?((?:.w+)*)$/格式属性");
         }
       } else {
-        params.attrs.push(`"${name}":"${value}"`);
+        params.attrs.push(`${name}:"${value}"`);
       }
     });
-    if (params.props.length || params.on.length) {
-      params.hook = ["init:init"]
-    }
     optStr = Object.keys(params)
       .filter((key) => {
         return params[key].length > 0;
@@ -43,21 +44,19 @@ function prase(node) {
       })
     if (childNodes && childNodes.length) {
       chStr = Array.from(childNodes)
-        .map((child) => prase(child))
+        .map((child) => parse(child))
         .filter(child => child)
     }
     return `h("${tagStr}", {${optStr}}, [${chStr}])`;
   } else if (isText(node) && node.textContent.trim()) {
     let textContent = node.textContent.trim()
-    const reg = /(\{\{.*?\}\})/g;
-    return reg.test(textContent) ? `h(undefined,{hook:{init:init}},"${textContent}")` : `"${textContent}"`;
+    const reg = /\{\{.*?\}\}/;
+    return reg.test(textContent) ? `"${textContent}".replace(/\{\{(.*?)\}\}/g,(a, b)=> this[b])` : `"${textContent}"`;
   } else {
     return ""
   }
 };
 
-export default function preser(node, vm) {
-  let str = `var h=this.vm.createElement,init=this._watch;console.log(this);return ${prase(node)};`
-  console.log(str)
-  return new Function(str);
+export default function parser(node) {
+  return new Function("h", `return ${parse(node)};`);
 }
