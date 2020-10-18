@@ -8,10 +8,9 @@ import { eventListenersModule } from "snabbdom/build/package/modules/eventlisten
 import { h } from "snabbdom/build/package/h";
 
 var patch = init([
-  // Init patch function with chosen modules
-  //   classModule, // makes it easy to toggle classess
-  //   propsModule, // for setting properties on DOM elements
-  //   styleModule, // handles styling on elements with support for animations
+  classModule, // makes it easy to toggle classess
+  propsModule, // for setting properties on DOM elements
+  styleModule, // handles styling on elements with support for animations
   eventListenersModule, // attaches event listeners
 ]);
 function getType(item) {
@@ -37,51 +36,32 @@ export default class Complier {
     } else if (this.el) {
       this._render = parser(this.el);
     }
-    this.$creater = function (a, b, c) {
-      console.log(this,a, b, c,'b');
+    this._c = function (a, b = {}, c) {
+      if (b.on) {
+        Object.keys(b.on).forEach((key) => {
+          b.on[key] = b.on[key].bind(vm)
+        })
+      }
       return h(a, b, c);
     };
-    this._vnode = this._render(this.$creater);
+    this._vnode = this._render.call(vm, this._c.bind(vm));
     this.complie();
   }
   complie() {
-    let updateMap = {};
-    this._vnode.children.forEach((vnode) => {
-      let { props, on } = vnode.data || {};
-      if (props && isObj(props)) {
-        Object.keys(props).forEach((key) => {
-          updateMap[key] = updateMap[key] || [];
-          updateMap[key].push(vnode);
-        });
-      }
-    });
-
-    console.log(this._vnode, updateMap);
-    //         if(vnode.tag) {
-    //             this.complieElement(vnode.children, vnode)
-    //         }else {
-    //             this.complieText(vnode)
-    //         }
-    //
-    //         export function vnode(sel, data, children, text, elm) {
-    //             const key = data === undefined ? undefined : data.key;
-    //             return { sel, data, children, text, elm, key };
-    //         }
-    //
-    //         Array.from(vnode.children).forEach(node => {
-    //             if (node.type == 3) {
-    //                 this.complieText(node)
-    //             } else if (node.type == 1) {
-    //                 this.complieElement(node)
-    //             }
-    //         })
     patch(this.el, this._vnode);
+    Object.keys(this.vm).forEach((key) => {
+      new Watcher(this.vm, key, (newVal) => {
+        let newN = this._render.call(vm, this._c);
+        this._vnode = patch(this._vnode, newN);
+      });
+    });
+    console.log(this._vnode)
   }
   complieChildren(vnodes, PVnode) {
     return vnodes.map((vnode) => {
       let { tag, data, children } = vnode;
       if (vnode.data) {
-        Object.keys(data).forEach((key) => {});
+        Object.keys(data).forEach((key) => { });
       }
     });
   }
@@ -129,8 +109,8 @@ export default class Complier {
     let cb =
       typeof val === "function"
         ? () => {
-            val.call(this.vm);
-          }
+          val.call(this.vm);
+        }
         : null;
     cb && node.addEventListener(event, cb);
     new Watcher(this.vm, key, (newVal) => {
@@ -138,12 +118,5 @@ export default class Complier {
       cb = typeof newVal === "function" ? newVal : null;
       cb && node.addEventListener(event, cb);
     });
-  }
-  _init(vnode) {
-    let { on, props } = vnode.data;
-  }
-  _watch(vnode) {
-    const { data = {} } = vnode;
-    if (data) console.log(vnode, "watch");
   }
 }
