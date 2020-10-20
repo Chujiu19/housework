@@ -36,32 +36,17 @@
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
 /******/ 		}
 /******/ 	};
 /******/
 /******/ 	// define __esModule on exports
 /******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
 /******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -92,7 +77,7 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_observer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var _src_compiler__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
-/* harmony import */ var snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(14);
+/* harmony import */ var snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
 /* harmony import */ var snabbdom_build_package_vnode__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
 
 
@@ -207,12 +192,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Complier; });
 /* harmony import */ var _watcher__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
 /* harmony import */ var _praser__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
-/* harmony import */ var snabbdom_build_package_init__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var snabbdom_build_package_modules_class__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(10);
-/* harmony import */ var snabbdom_build_package_modules_props__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(11);
-/* harmony import */ var snabbdom_build_package_modules_style__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(12);
-/* harmony import */ var snabbdom_build_package_modules_eventlisteners__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(13);
-/* harmony import */ var snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(14);
+/* harmony import */ var snabbdom_build_package_init__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var snabbdom_build_package_modules_class__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
+/* harmony import */ var snabbdom_build_package_modules_props__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(12);
+/* harmony import */ var snabbdom_build_package_modules_style__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(13);
+/* harmony import */ var snabbdom_build_package_modules_eventlisteners__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(14);
+/* harmony import */ var snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(6);
 
 
 
@@ -371,6 +356,9 @@ class Watcher {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return parser; });
+/* harmony import */ var snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
+
+
 function isText(node) {
   return node && node.nodeType == 3;
 };
@@ -378,6 +366,66 @@ function isElement(node) {
   return node && node.nodeType == 1;
 };
 
+
+function parseText(str) {
+  const reg1 = /<\s*(\S+)(\s[^>]*)?>[\s\S]*<\s*\/\1\s*>/,
+    reg2 = /<\s*(\S+)(\s[^>]*)?>([^<>]*)?<\s*\/\1\s*>/g,
+    reg3 = /v-(\w+)(?:\:(\w+)(?:\.(\w+))?)?/,
+    reg4 = /\{\{[^\{\}]*\}\}/g
+  let trs = (str, p) => {
+    if (!str) {
+      return ''
+    } else if (reg1.test(str)) { // 元素节点
+      let newStr = str.replace(reg2, (a, b, c, d, e) => {
+        let tag = b,
+          optStr = ""
+        if (c) {
+          let params = {
+            props: [],
+            attrs: [],
+            on: [],
+          }
+          c.split(' ').forEach(attr => {
+            if (/\S+="\S*"/.test(attr)) {
+              let [, key, val] = attr.match(/(\S+)(?:="(\S+)?")/)
+              if (key && reg3.test(key)) {
+                const [, d, e, a] = key.match(reg3);
+                if (d) {
+                  if (d == "bind") params.props.push(`${e}:this.${val}`);
+                  if (d == "on") params.on.push(`${e}:this.${val}`);
+                  if (d == "model") {
+                    params.props.push(`value:this.${val}`);
+                    params.on.push(`input(e){this.${val}=e.target.value}`)
+                  }
+                }
+              } else {
+                params.attrs.push(`${key}:"${val}"`);
+              }
+            } else {
+              params.attrs.push(`${attr}:""`);
+            }
+          })
+          optStr = Object.keys(params)
+            .filter((key) => {
+              return params[key].length > 0;
+            })
+            .map((key) => {
+              return `${key}:{${params[key].join(",")}}`;
+            })
+        }
+        return `${e > 0 ? "," : ""}h("${tag}", {${optStr}}, [${d}])${e + a.length < e.length ? "," : ""}`;
+      })
+      return trs(newStr)
+    } else if (reg4.test(str)) {
+      return str.replace(/\{\{([^\{\}]*)*\}\}/g, (a,b, c, d) => {
+        return `${c > 0? "," : ""}this["${b}"]${c + a.length < d.length ? "," : ""}`
+      })
+    } else {
+      return `"${str}"`
+    }
+  }
+  return trs(str)
+}
 function parse(node, pNode) {
   if (isElement(node)) {
     const { tagName, attributes, childNodes } = node;
@@ -386,7 +434,7 @@ function parse(node, pNode) {
       attrs: [],
       on: [],
     };
-    let optStr = "", chStr = "",
+    let optStr = "", ch = [],
       tagStr = tagName ? tagName.toLowerCase() : "";
 
     Array.from(attributes).forEach((attr) => {
@@ -401,6 +449,7 @@ function parse(node, pNode) {
             params.props.push(`value:this.${value}`);
             params.on.push(`input(e){this.${value}=e.target.value}`)
           }
+         
         } else {
           throw new Error("仅支持/^v-(w+)(:w+)?((?:.w+)*)$/格式属性");
         }
@@ -416,11 +465,11 @@ function parse(node, pNode) {
         return `${key}:{${params[key].join(",")}}`;
       })
     if (childNodes && childNodes.length) {
-      chStr = Array.from(childNodes)
+      ch = Array.from(childNodes)
         .map((child) => parse(child))
         .filter(child => child)
     }
-    return `h("${tagStr}", {${optStr}}, [${chStr}])`;
+    return `h("${tagStr}", {${optStr}}, [${ch}])`;
   } else if (isText(node) && node.textContent.trim()) {
     let textContent = node.textContent.trim()
     const reg = /\{\{.*?\}\}/;
@@ -440,10 +489,107 @@ function parser(node) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return h; });
+/* harmony import */ var _vnode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
+/* harmony import */ var _is_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
+
+
+function addNS(data, children, sel) {
+    data.ns = 'http://www.w3.org/2000/svg';
+    if (sel !== 'foreignObject' && children !== undefined) {
+        for (let i = 0; i < children.length; ++i) {
+            const childData = children[i].data;
+            if (childData !== undefined) {
+                addNS(childData, children[i].children, children[i].sel);
+            }
+        }
+    }
+}
+function h(sel, b, c) {
+    var data = {};
+    var children;
+    var text;
+    var i;
+    if (c !== undefined) {
+        if (b !== null) {
+            data = b;
+        }
+        if (_is_js__WEBPACK_IMPORTED_MODULE_1__["array"](c)) {
+            children = c;
+        }
+        else if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](c)) {
+            text = c;
+        }
+        else if (c && c.sel) {
+            children = [c];
+        }
+    }
+    else if (b !== undefined && b !== null) {
+        if (_is_js__WEBPACK_IMPORTED_MODULE_1__["array"](b)) {
+            children = b;
+        }
+        else if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](b)) {
+            text = b;
+        }
+        else if (b && b.sel) {
+            children = [b];
+        }
+        else {
+            data = b;
+        }
+    }
+    if (children !== undefined) {
+        for (i = 0; i < children.length; ++i) {
+            if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](children[i]))
+                children[i] = Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])(undefined, undefined, undefined, children[i], undefined);
+        }
+    }
+    if (sel[0] === 's' && sel[1] === 'v' && sel[2] === 'g' &&
+        (sel.length === 3 || sel[3] === '.' || sel[3] === '#')) {
+        addNS(data, children, sel);
+    }
+    return Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])(sel, data, children, text, undefined);
+}
+;
+//# sourceMappingURL=h.js.map
+
+/***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "vnode", function() { return vnode; });
+function vnode(sel, data, children, text, elm) {
+    const key = data === undefined ? undefined : data.key;
+    return { sel, data, children, text, elm, key };
+}
+//# sourceMappingURL=vnode.js.map
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "primitive", function() { return primitive; });
+const array = Array.isArray;
+function primitive(s) {
+    return typeof s === 'string' || typeof s === 'number';
+}
+//# sourceMappingURL=is.js.map
+
+/***/ }),
+/* 9 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
 /* harmony import */ var _vnode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
 /* harmony import */ var _is_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-/* harmony import */ var _htmldomapi_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var _htmldomapi_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
 
 
 
@@ -767,34 +913,7 @@ function init(modules, domApi) {
 //# sourceMappingURL=init.js.map
 
 /***/ }),
-/* 7 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "vnode", function() { return vnode; });
-function vnode(sel, data, children, text, elm) {
-    const key = data === undefined ? undefined : data.key;
-    return { sel, data, children, text, elm, key };
-}
-//# sourceMappingURL=vnode.js.map
-
-/***/ }),
-/* 8 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "primitive", function() { return primitive; });
-const array = Array.isArray;
-function primitive(s) {
-    return typeof s === 'string' || typeof s === 'number';
-}
-//# sourceMappingURL=is.js.map
-
-/***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -865,7 +984,7 @@ const htmlDomApi = {
 //# sourceMappingURL=htmldomapi.js.map
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -901,7 +1020,7 @@ const classModule = { create: updateClass, update: updateClass };
 //# sourceMappingURL=class.js.map
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -932,7 +1051,7 @@ const propsModule = { create: updateProps, update: updateProps };
 //# sourceMappingURL=props.js.map
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1053,7 +1172,7 @@ const styleModule = {
 //# sourceMappingURL=style.js.map
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1142,76 +1261,6 @@ const eventListenersModule = {
     destroy: updateEventListeners
 };
 //# sourceMappingURL=eventlisteners.js.map
-
-/***/ }),
-/* 14 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return h; });
-/* harmony import */ var _vnode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
-/* harmony import */ var _is_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-
-
-function addNS(data, children, sel) {
-    data.ns = 'http://www.w3.org/2000/svg';
-    if (sel !== 'foreignObject' && children !== undefined) {
-        for (let i = 0; i < children.length; ++i) {
-            const childData = children[i].data;
-            if (childData !== undefined) {
-                addNS(childData, children[i].children, children[i].sel);
-            }
-        }
-    }
-}
-function h(sel, b, c) {
-    var data = {};
-    var children;
-    var text;
-    var i;
-    if (c !== undefined) {
-        if (b !== null) {
-            data = b;
-        }
-        if (_is_js__WEBPACK_IMPORTED_MODULE_1__["array"](c)) {
-            children = c;
-        }
-        else if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](c)) {
-            text = c;
-        }
-        else if (c && c.sel) {
-            children = [c];
-        }
-    }
-    else if (b !== undefined && b !== null) {
-        if (_is_js__WEBPACK_IMPORTED_MODULE_1__["array"](b)) {
-            children = b;
-        }
-        else if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](b)) {
-            text = b;
-        }
-        else if (b && b.sel) {
-            children = [b];
-        }
-        else {
-            data = b;
-        }
-    }
-    if (children !== undefined) {
-        for (i = 0; i < children.length; ++i) {
-            if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](children[i]))
-                children[i] = Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])(undefined, undefined, undefined, children[i], undefined);
-        }
-    }
-    if (sel[0] === 's' && sel[1] === 'v' && sel[2] === 'g' &&
-        (sel.length === 3 || sel[3] === '.' || sel[3] === '#')) {
-        addNS(data, children, sel);
-    }
-    return Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])(sel, data, children, text, undefined);
-}
-;
-//# sourceMappingURL=h.js.map
 
 /***/ })
 /******/ ]);
