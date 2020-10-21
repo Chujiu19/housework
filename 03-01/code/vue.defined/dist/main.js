@@ -83,41 +83,117 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Vue {
-    constructor(options) {
-        this.$options = options
-        this.$data = options.data || {}
-        this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el
-        this._proxyData(this.$data)
-        this.setMethods(options.methods)
-        new _src_observer__WEBPACK_IMPORTED_MODULE_0__["default"](this.$data)
-        new _src_compiler__WEBPACK_IMPORTED_MODULE_1__["default"](this)
 
+function getOpt(attrs) {
+  let params = {
+    props: {},
+    attrs: {},
+    on: {},
+  };
+  attrs.forEach((attr) => {
+    attr = (attr && attr.trim()) || "";
+    let [, key, val] = attr.match(/([^=]*)(?:="(.*)")?/);
+    if (/^v-/.test(key)) {
+      // 指令
+      let [, d, e] = attr.match(/v-(\w+)(?:\:(\w+))?/);
+      if (d == "bind") params.props[e] = this[val];
+      if (d == "on") params.on[e] = this[val];
+      if (d == "model") {
+        params.props.value = this[val];
+        params.on.input = (e) => {
+          this[val] = e.target.value;
+        };
+      }
+    } else if (key) {
+      params.attrs[key] = val;
     }
-    _proxyData(data) {
-        Object.keys(data).forEach(key => {
-            Object.defineProperty(this, key, {
-                configurable: true,
-                enumerable: true,
-                get() {
-                    return data[key]
-                },
-                set(val) {
-                    if (val === data[key]) return
-                    data[key] = val
-                }
-            })
-        })
-
-    }
-    setMethods(methods) {
-        Object.keys(methods).forEach(key => {
-            this[key] = methods[key]
-        })
-    }
+  });
+  return params;
 }
 
-window.Vue = Vue
+function parseText(str) {
+  let parse = (str) => {
+    const isEle = /<\s*(\S+)(\s[^>]*)?>([\s\S]*)<\s*\/\1\s*>/;
+    const isInput = /<\s*(input)(\s*[^>]*)\/?>/;
+    const isEle2 = /<\s*(\S+)(\s[^>]*)?>([^<>]*)?<\s*\/\1\s*>/;
+    let hasDom = isEle2.test(str);
+    if (isEle2.test(str)) {
+      const isEle3 = /<\s*(\S+)(\s[^>]*)?>([^<>]*)?<\s*\/\1\s*>/g;
+      // 含元素
+      let ch = [],
+        ele;
+      while ((ele = isEle3.exec(str)) !== null) {
+        let [a, b, c, d] = ele,
+          e = ele.index;
+        if (e > 0) {
+          ch.push(parse(str.slice(0, e)));
+        }
+        let opt = {};
+        if (c) {
+          opt = getOpt(c.match(/([\\s\S]+)/g));
+        }
+        ch.push(Object(snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_2__["h"])(b, opt, parse(d)));
+        if (isEle3.lastIndex) {
+          ch.push(parse(str.slice(e + a.length, isEle3.lastIndex)));
+        }
+      }
+      return ch;
+    } else if (isInput.test(str)) {
+    } else {
+      // 纯文本
+      let hasVal = /\{\{[^\{\}]*\}\}/;
+      if (hasVal.test(str)) {
+        // 含插值
+        return str.replace(/\{\{([^\{\}]*)?\}\}/g, (a, b, c) => b && this[b]);
+      } else {
+        return str;
+      }
+    }
+  };
+  return parse(str);
+}
+
+class Vue {
+  constructor(options) {
+    this.$options = options;
+    this.$data = options.data || {};
+    this.$el =
+      typeof options.el === "string"
+        ? document.querySelector(options.el)
+        : options.el;
+    this._proxyData(this.$data);
+    this.setMethods(options.methods);
+    new _src_observer__WEBPACK_IMPORTED_MODULE_0__["default"](this.$data);
+    new _src_compiler__WEBPACK_IMPORTED_MODULE_1__["default"](this);
+  }
+  _proxyData(data) {
+    Object.keys(data).forEach((key) => {
+      Object.defineProperty(this, key, {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return data[key];
+        },
+        set(val) {
+          if (val === data[key]) return;
+          data[key] = val;
+        },
+      });
+    });
+  }
+  setMethods(methods) {
+    Object.keys(methods).forEach((key) => {
+      this[key] = methods[key];
+    });
+  }
+  _pT(str) {
+    console.log(parseText.call(this, str), "pt");
+    // return new Function(`"return ${parseText(str)}"`);
+  }
+}
+
+window.Vue = Vue;
+
 
 /***/ }),
 /* 1 */
@@ -361,71 +437,11 @@ __webpack_require__.r(__webpack_exports__);
 
 function isText(node) {
   return node && node.nodeType == 3;
-};
+}
 function isElement(node) {
   return node && node.nodeType == 1;
-};
-
-
-function parseText(str) {
-  const reg1 = /<\s*(\S+)(\s[^>]*)?>[\s\S]*<\s*\/\1\s*>/,
-    reg2 = /<\s*(\S+)(\s[^>]*)?>([^<>]*)?<\s*\/\1\s*>/g,
-    reg3 = /v-(\w+)(?:\:(\w+)(?:\.(\w+))?)?/,
-    reg4 = /\{\{[^\{\}]*\}\}/g
-  let trs = (str, p) => {
-    if (!str) {
-      return ''
-    } else if (reg1.test(str)) { // 元素节点
-      let newStr = str.replace(reg2, (a, b, c, d, e) => {
-        let tag = b,
-          optStr = ""
-        if (c) {
-          let params = {
-            props: [],
-            attrs: [],
-            on: [],
-          }
-          c.split(' ').forEach(attr => {
-            if (/\S+="\S*"/.test(attr)) {
-              let [, key, val] = attr.match(/(\S+)(?:="(\S+)?")/)
-              if (key && reg3.test(key)) {
-                const [, d, e, a] = key.match(reg3);
-                if (d) {
-                  if (d == "bind") params.props.push(`${e}:this.${val}`);
-                  if (d == "on") params.on.push(`${e}:this.${val}`);
-                  if (d == "model") {
-                    params.props.push(`value:this.${val}`);
-                    params.on.push(`input(e){this.${val}=e.target.value}`)
-                  }
-                }
-              } else {
-                params.attrs.push(`${key}:"${val}"`);
-              }
-            } else {
-              params.attrs.push(`${attr}:""`);
-            }
-          })
-          optStr = Object.keys(params)
-            .filter((key) => {
-              return params[key].length > 0;
-            })
-            .map((key) => {
-              return `${key}:{${params[key].join(",")}}`;
-            })
-        }
-        return `${e > 0 ? "," : ""}h("${tag}", {${optStr}}, [${d}])${e + a.length < e.length ? "," : ""}`;
-      })
-      return trs(newStr)
-    } else if (reg4.test(str)) {
-      return str.replace(/\{\{([^\{\}]*)*\}\}/g, (a,b, c, d) => {
-        return `${c > 0? "," : ""}this["${b}"]${c + a.length < d.length ? "," : ""}`
-      })
-    } else {
-      return `"${str}"`
-    }
-  }
-  return trs(str)
 }
+
 function parse(node, pNode) {
   if (isElement(node)) {
     const { tagName, attributes, childNodes } = node;
@@ -434,7 +450,8 @@ function parse(node, pNode) {
       attrs: [],
       on: [],
     };
-    let optStr = "", ch = [],
+    let optStr = "",
+      ch = [],
       tagStr = tagName ? tagName.toLowerCase() : "";
 
     Array.from(attributes).forEach((attr) => {
@@ -447,9 +464,11 @@ function parse(node, pNode) {
           if (d == "on") params.on.push(`${e}:this.${value}`);
           if (d == "model") {
             params.props.push(`value:this.${value}`);
-            params.on.push(`input(e){this.${value}=e.target.value}`)
+            params.on.push(`input(e){this.${value}=e.target.value}`);
           }
-         
+          if (d == "html") {
+            ch.push(`this._pT(this.${value})`);
+          }
         } else {
           throw new Error("仅支持/^v-(w+)(:w+)?((?:.w+)*)$/格式属性");
         }
@@ -463,25 +482,29 @@ function parse(node, pNode) {
       })
       .map((key) => {
         return `${key}:{${params[key].join(",")}}`;
-      })
+      });
     if (childNodes && childNodes.length) {
       ch = Array.from(childNodes)
         .map((child) => parse(child))
-        .filter(child => child)
+        .filter((child) => child);
     }
     return `h("${tagStr}", {${optStr}}, [${ch}])`;
   } else if (isText(node) && node.textContent.trim()) {
-    let textContent = node.textContent.trim()
+    let textContent = node.textContent.trim();
     const reg = /\{\{.*?\}\}/;
-    return reg.test(textContent) ? `"${textContent}".replace(/\{\{(.*?)\}\}/g,(a, b)=> this[b])` : `"${textContent}"`;
+    return reg.test(textContent)
+      ? `"${textContent}".replace(/\{\{(.*?)\}\}/g,(a, b)=> this[b])`
+      : `"${textContent}"`;
   } else {
-    return ""
+    return "";
   }
-};
+}
 
 function parser(node) {
+  console.log(parse(node), 'pares')
   return new Function("h", `return ${parse(node)};`);
 }
+
 
 /***/ }),
 /* 6 */
