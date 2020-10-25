@@ -44,4 +44,4 @@ this.dog.name = 'Trump'
 
 注： 1. 测试html为code/index.html，vue.min不支持render函数，vue.defined优先取render
 
-ps: 好奇把watcher挂在了node上, 那vnode有啥用.于是想不开作了死把snabbdom加到了vue.min的代码里，不知道应该怎么处理于是从头撸了遍vue源码。。。还越理越乱。拖作业拖到想转行。 最终出个这么个不伦不类的vue.defined
+ps: 好奇把watcher挂在了node上, 那vnode有啥用.于是想不开作了死把snabbdom加到了vue.min的代码里，不知道应该怎么处理于是从头撸了遍vue源码。。。prase还顺便撸了遍正则。。 越理越乱，越拖越久，拖作业拖到想转行。 最终出个这么个不伦不类的vue.defined
