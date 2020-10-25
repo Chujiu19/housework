@@ -1,16 +1,15 @@
-import Observer from './src/observer'
-import Compiler from './src/compiler'
 
-
-default export class Vue {
+import Observer from "./src/observer.js"
+import Complier from "./src/complier.js"
+export default class Vue {
     constructor(options) {
         this.$options = options
         this.$data = options.data || {}
-        this.$el = typeof options.el === 'string' ? document.querySelector(options.el) : options.el
+        this.$el = (typeof options.el === 'string') ? document.querySelector(options.el) : options.el
         this._proxyData(this.$data)
         this.setMethods(options.methods)
         new Observer(this.$data)
-        new Compiler(this)
+        new Complier(this)
 
     }
     _proxyData(data) {

@@ -1,39 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-</head>
-
-<body>
+  </head>
+  <style>
+    .list {
+      width: 500px;
+    }
+    .container {
+      position: relative;
+    }
+    .item {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 0 20px;
+      border: 1px solid #ccc;
+    }
+    .name,
+    .price,
+    .id {
+      width: 30px;
+    }
+    .del {
+      position: absolute;
+      top: -5px;
+      right: -10px;
+      width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      background-color: #ccc;
+      color: #fff;
+      text-align: center;
+      line-height: 20px;
+      cursor: pointer;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .btn button {
+      margin-right: 4px;
+    }
+  </style>
+  <body>
     <div id="vue">
-        <div>v-model: {{name}} <div><input v-model="name" type="text"></div>
+      <div v-for="item in list">
+        v-model: {{name}}
+        <div><input v-model="name" type="text" /></div>
+      </div>
+      <div>
+        v-on: {{age}}
+        <div>click <button v-on:click="grow">add1</button></div>
+        <div v-on:mouseover="grow" v-bind:class="color">
+          mouseover <button>add1</button>
         </div>
-        <div>v-on: {{age}} <div>click <button v-on:click="grow">add1</button></div>
-            <div v-on:mouseover="grow">mouseover <button>add1</button></div>
-        </div>
-        <div>v-html <input type="textarea" v-model="box">
-            <div v-html="box"></div>
-        </div>
+      </div>
+      <div>
+        v-html <input type="text" v-model="box" />
+        <div v-html="box"></div>
+      </div>
     </div>
-    <script src="./vueMin.js"></script>
-    <script>
-        new Vue({
-            el: '#vue',
-            data: {
-                name: 'Tom',
-                age: 12,
-                box: `<h1>ball</h1>`
-            },
-            methods: {
-                grow() {
-                    this.age++
-                }
-            }
-        })
-    </script>
-</body>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+    <!-- <script src="./vue.min.js"></script> -->
+    <script src="./vue.defined.js"></script>
 
+    <script>
+      var ori = [
+        {
+          key: 1,
+          id: 1,
+          name: "e",
+          price: 2,
+          dec: "从前有座山"
+        },
+        {
+          key: 2,
+          id: 2,
+          name: "d",
+          price: 8,
+          dec: "山里有座庙"
+        },
+        {
+          key: 3,
+          id: 3,
+          name: "c",
+          dec: "庙里有个老和尚和小和尚",
+          price: 6
+        },
+        {
+          key: 4,
+          id: 4,
+          name: "b",
+          dec: "老和尚给小和尚讲故事",
+          price: 9
+        },
+        {
+          key: 5,
+          id: 5,
+          name: "a",
+          dec: "小和尚说:我不听。。。",
+          price: 3
+        }
+      ];
+      var vm = new Vue({
+        el: "#vue",
+        data: {
+          itemHeight: 50,
+          name: "Tom",
+          age: 12,
+          box: `<h1>h1</h1><h2>h2</h2>`,
+          color: { red: true },
+          list: [...ori]
+        },
+        methods: {
+          grow() {
+            this.age++;
+          }
+        },
+        render(h) {
+          let self = this;
+          let ch = this.list.map((item, i) => {
+            const y = i * (this.itemHeight + 10) + "px";
+            return h(
+              "div",
+              {
+                key: item.key,
+                attrs: { class: "item" },
+                style: {
+                  opacity: "0",
+                  height: this.itemHeight + "px",
+                  delayed: {
+                    transform: `translateY(${y})`,
+                    opacity: "1"
+                  },
+                  transition: "0.3s",
+                  remove: {
+                    opacity: "0",
+                    transform: `translateY(${y})`
+                  }
+                }
+              },
+              [
+                h("div", { attrs: { class: "id" } }, item.id),
+                h("div", { attrs: { class: "name" } }, item.name),
+                h("div", { attrs: { class: "price" } }, item.price),
+                h(
+                  "div",
+                  {
+                    attrs: { class: "del" },
+                    on: {
+                      click() {
+                        self.list = self.list.filter((sitem) => sitem !== item);
+                      }
+                    }
+                  },
+                  "x"
+                ),
+                item.dec
+              ]
+            );
+          });
+
+          let btns = ["id", "name", "price"].map((key) => {
+            return h(
+              "button",
+              {
+                on: {
+                  click(e) {
+                    let arr = [];
+                    self.list.forEach((item, i) => {
+                      if (arr.length && item[key] > arr[arr.length - 1][key]) {
+                        arr.push(item);
+                      } else {
+                        const i = arr.findIndex(
+                          (oitem) => oitem[key] >= item[key]
+                        );
+                        arr.splice(Math.max(i, 0), 0, item);
+                      }
+                    });
+                    self.list = arr;
+                  }
+                }
+              },
+              key
+            );
+          });
+
+          return h("div", { attrs: { class: "list" } }, [
+            h("div", { attrs: { class: "header" } }, [
+              h("div", { attrs: { class: "btn" } }, ["Sort by：", ...btns]),
+              h(
+                "button",
+                {
+                  on: {
+                    click() {
+                      self.list = [
+                        Object.assign({}, ori[self.list.length % ori.length], {
+                          key: Math.ceil(Math.random() * 10000)
+                        }),
+                        ...self.list
+                      ];
+                    }
+                  }
+                },
+                "add"
+              )
+            ]),
+            h("div", { attrs: { class: "container" } }, ch)
+          ]);
+        }
+      });
+    </script>
+  </body>
 </html>

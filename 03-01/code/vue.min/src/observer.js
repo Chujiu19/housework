@@ -1,5 +1,4 @@
-import Dep from './dep'
-
+import Dep from "./dep.js"
 export default class Observer {
     constructor(data) {
         this.work(data)

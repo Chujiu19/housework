@@ -1,10 +1,9 @@
 {
-  "name": "vue_min",
+  "name": "vue.defined",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rollup -c"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +12,7 @@
     "snabbdom": "^2.1.0"
   },
   "devDependencies": {
-    "rollup": "^2.29.0"
+    "rollup": "^2.29.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
   }
 }

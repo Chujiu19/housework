@@ -36,17 +36,32 @@
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
 /******/ 	};
 /******/
 /******/ 	// define __esModule on exports
 /******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
 /******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -75,83 +90,16 @@
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Vue", function() { return Vue; });
 /* harmony import */ var _src_observer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
-/* harmony import */ var _src_compiler__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
-/* harmony import */ var snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var snabbdom_build_package_vnode__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
+/* harmony import */ var _src_complier__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony import */ var snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(15);
+/* harmony import */ var _src_praser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(16);
 
 
 
 
 
-function getOpt(attrs) {
-  let params = {
-    props: {},
-    attrs: {},
-    on: {},
-  };
-  attrs.forEach((attr) => {
-    attr = (attr && attr.trim()) || "";
-    let [, key, val] = attr.match(/([^=]*)(?:="(.*)")?/);
-    if (/^v-/.test(key)) {
-      // 指令
-      let [, d, e] = attr.match(/v-(\w+)(?:\:(\w+))?/);
-      if (d == "bind") params.props[e] = this[val];
-      if (d == "on") params.on[e] = this[val];
-      if (d == "model") {
-        params.props.value = this[val];
-        params.on.input = (e) => {
-          this[val] = e.target.value;
-        };
-      }
-    } else if (key) {
-      params.attrs[key] = val;
-    }
-  });
-  return params;
-}
-
-function parseText(str) {
-  let parse = (str) => {
-    const isEle = /<\s*(\S+)(\s[^>]*)?>([\s\S]*)<\s*\/\1\s*>/;
-    const isInput = /<\s*(input)(\s*[^>]*)\/?>/;
-    const isEle2 = /<\s*(\S+)(\s[^>]*)?>([^<>]*)?<\s*\/\1\s*>/;
-    let hasDom = isEle2.test(str);
-    if (isEle2.test(str)) {
-      const isEle3 = /<\s*(\S+)(\s[^>]*)?>([^<>]*)?<\s*\/\1\s*>/g;
-      // 含元素
-      let ch = [],
-        ele;
-      while ((ele = isEle3.exec(str)) !== null) {
-        let [a, b, c, d] = ele,
-          e = ele.index;
-        if (e > 0) {
-          ch.push(parse(str.slice(0, e)));
-        }
-        let opt = {};
-        if (c) {
-          opt = getOpt(c.match(/([\\s\S]+)/g));
-        }
-        ch.push(Object(snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_2__["h"])(b, opt, parse(d)));
-        if (isEle3.lastIndex) {
-          ch.push(parse(str.slice(e + a.length, isEle3.lastIndex)));
-        }
-      }
-      return ch;
-    } else if (isInput.test(str)) {
-    } else {
-      // 纯文本
-      let hasVal = /\{\{[^\{\}]*\}\}/;
-      if (hasVal.test(str)) {
-        // 含插值
-        return str.replace(/\{\{([^\{\}]*)?\}\}/g, (a, b, c) => b && this[b]);
-      } else {
-        return str;
-      }
-    }
-  };
-  return parse(str);
-}
 
 class Vue {
   constructor(options) {
@@ -161,10 +109,22 @@ class Vue {
       typeof options.el === "string"
         ? document.querySelector(options.el)
         : options.el;
+    if (options.render) {
+      this._render = options.render
+    } else if (this.$el instanceof HTMLElement) {
+      this._render = Object(_src_praser__WEBPACK_IMPORTED_MODULE_3__["default"])(this.$el);
+    }
+
+    const c = this._c = (a, b = {}, c) => {
+      const obj = Object.setPrototypeOf(b, this.$data)
+      return Object(snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_2__["h"])(a, obj, c);
+    }
     this._proxyData(this.$data);
     this.setMethods(options.methods);
     new _src_observer__WEBPACK_IMPORTED_MODULE_0__["default"](this.$data);
-    new _src_compiler__WEBPACK_IMPORTED_MODULE_1__["default"](this);
+    this._vnode = this._render(c);
+    new _src_complier__WEBPACK_IMPORTED_MODULE_1__["default"](this);
+
   }
   _proxyData(data) {
     Object.keys(data).forEach((key) => {
@@ -186,13 +146,7 @@ class Vue {
       this[key] = methods[key];
     });
   }
-  _pT(str) {
-    console.log(parseText.call(this, str), "pt");
-    // return new Function(`"return ${parseText(str)}"`);
-  }
 }
-
-window.Vue = Vue;
 
 
 /***/ }),
@@ -267,13 +221,13 @@ class Dep {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Complier; });
 /* harmony import */ var _watcher__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
-/* harmony import */ var _praser__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
-/* harmony import */ var snabbdom_build_package_init__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
-/* harmony import */ var snabbdom_build_package_modules_class__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
-/* harmony import */ var snabbdom_build_package_modules_props__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(12);
-/* harmony import */ var snabbdom_build_package_modules_style__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(13);
-/* harmony import */ var snabbdom_build_package_modules_eventlisteners__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(14);
-/* harmony import */ var snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(6);
+/* harmony import */ var snabbdom_build_package_init__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
+/* harmony import */ var snabbdom_build_package_modules_class__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var snabbdom_build_package_modules_props__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(10);
+/* harmony import */ var snabbdom_build_package_modules_style__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(11);
+/* harmony import */ var snabbdom_build_package_modules_eventlisteners__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(12);
+/* harmony import */ var snabbdom_build_package_tovnode__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(13);
+/* harmony import */ var snabbdom_build_package_modules_attributes__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(14);
 
 
 
@@ -283,116 +237,31 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var patch = Object(snabbdom_build_package_init__WEBPACK_IMPORTED_MODULE_2__["init"])([
-  snabbdom_build_package_modules_class__WEBPACK_IMPORTED_MODULE_3__["classModule"], // makes it easy to toggle classess
-  snabbdom_build_package_modules_props__WEBPACK_IMPORTED_MODULE_4__["propsModule"], // for setting properties on DOM elements
-  snabbdom_build_package_modules_style__WEBPACK_IMPORTED_MODULE_5__["styleModule"], // handles styling on elements with support for animations
-  snabbdom_build_package_modules_eventlisteners__WEBPACK_IMPORTED_MODULE_6__["eventListenersModule"], // attaches event listeners
+
+var patch = Object(snabbdom_build_package_init__WEBPACK_IMPORTED_MODULE_1__["init"])([
+  snabbdom_build_package_modules_props__WEBPACK_IMPORTED_MODULE_3__["propsModule"],
+  snabbdom_build_package_modules_style__WEBPACK_IMPORTED_MODULE_4__["styleModule"],
+  snabbdom_build_package_modules_eventlisteners__WEBPACK_IMPORTED_MODULE_5__["eventListenersModule"],
+  snabbdom_build_package_modules_attributes__WEBPACK_IMPORTED_MODULE_7__["attributesModule"],
+  snabbdom_build_package_modules_class__WEBPACK_IMPORTED_MODULE_2__["classModule"]
 ]);
-function getType(item) {
-  return Object.prototype.toString.call(item).toLowerCase();
-}
-function isObj(item) {
-  return getType(item) === "[object object]";
-}
-function isArr(item) {
-  return getType(item) === "[object array]";
-}
-function create(a, b, c) {
-  if (isObj(b)) {
-  }
-}
-
 class Complier {
   constructor(vm) {
     this.vm = vm;
     this.el = vm.$el;
-    if (vm.$options.render) {
-      this._render = vm.$options.render;
-    } else if (this.el) {
-      this._render = Object(_praser__WEBPACK_IMPORTED_MODULE_1__["default"])(this.el);
-    }
-    this._c = function (a, b = {}, c) {
-      if (b.on) {
-        Object.keys(b.on).forEach((key) => {
-          b.on[key] = b.on[key].bind(vm)
-        })
-      }
-      return Object(snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_7__["h"])(a, b, c);
-    };
-    this._vnode = this._render.call(vm, this._c.bind(vm));
+    let _vnode = this.vm._render(this.vm._c);
+    _vnode.elm = this.el
+    this.vnode = patch(Object(snabbdom_build_package_tovnode__WEBPACK_IMPORTED_MODULE_6__["toVNode"])(this.el), _vnode);
     this.complie();
+
   }
   complie() {
-    patch(this.el, this._vnode);
-    Object.keys(this.vm).forEach((key) => {
+    Object.keys(this.vm.$data).forEach((key) => {
       new _watcher__WEBPACK_IMPORTED_MODULE_0__["default"](this.vm, key, (newVal) => {
-        let newN = this._render.call(vm, this._c);
-        this._vnode = patch(this._vnode, newN);
+        var _vnode = this.vm._render(this.vm._c);
+        _vnode.elm = this.vnode.elm
+        this.vnode = patch(this.vnode, _vnode);
       });
-    });
-    console.log(this._vnode)
-  }
-  complieChildren(vnodes, PVnode) {
-    return vnodes.map((vnode) => {
-      let { tag, data, children } = vnode;
-      if (vnode.data) {
-        Object.keys(data).forEach((key) => { });
-      }
-    });
-  }
-  complieElement(vnodes, PVnode) {
-    Array.from(node.attributes).forEach((attr) => {
-      let name = attr.name;
-      if (/^v-(\w+)/.test(name)) {
-        this.update(node, RegExp.$1, attr.value, name);
-      }
-    });
-  }
-  complieText(node) {
-    const reg = /\{\{(.*)\}\}/;
-    const val = node.textContent;
-    if (reg.test(val)) {
-      const key = RegExp.$1.trim();
-      node.textContent = val.replace(reg, this.vm[key]);
-      new _watcher__WEBPACK_IMPORTED_MODULE_0__["default"](this.vm, key, (newVal) => {
-        node.textContent = val.replace(reg, newVal);
-      });
-    }
-  }
-  update(node, direct, key, name) {
-    let fn = this[direct + "Update"];
-    fn && fn.call(this, node, this.vm[key], key, name);
-  }
-  modelUpdate(node, val, key) {
-    node.value = val;
-    new _watcher__WEBPACK_IMPORTED_MODULE_0__["default"](this.vm, key, (newVal) => {
-      node.value = newVal;
-    });
-    node.addEventListener("input", () => {
-      this.vm[key] = node.value;
-    });
-  }
-  htmlUpdate(node, val, key) {
-    node.innerHTML = val;
-    new _watcher__WEBPACK_IMPORTED_MODULE_0__["default"](this.vm, key, (newVal) => {
-      node.innerHTML = newVal;
-    });
-  }
-  onUpdate(node, val, key, name) {
-    if (!/:(\w+)/.test(name)) return;
-    const event = RegExp.$1;
-    let cb =
-      typeof val === "function"
-        ? () => {
-          val.call(this.vm);
-        }
-        : null;
-    cb && node.addEventListener(event, cb);
-    new _watcher__WEBPACK_IMPORTED_MODULE_0__["default"](this.vm, key, (newVal) => {
-      cb && node.removeEventListener(event, cb);
-      cb = typeof newVal === "function" ? newVal : null;
-      cb && node.addEventListener(event, cb);
     });
   }
 }
@@ -431,188 +300,10 @@ class Watcher {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return parser; });
-/* harmony import */ var snabbdom_build_package_h__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
-
-
-function isText(node) {
-  return node && node.nodeType == 3;
-}
-function isElement(node) {
-  return node && node.nodeType == 1;
-}
-
-function parse(node, pNode) {
-  if (isElement(node)) {
-    const { tagName, attributes, childNodes } = node;
-    const params = {
-      props: [],
-      attrs: [],
-      on: [],
-    };
-    let optStr = "",
-      ch = [],
-      tagStr = tagName ? tagName.toLowerCase() : "";
-
-    Array.from(attributes).forEach((attr) => {
-      const { name, value } = attr;
-      const reg = /v-(\w+)(?:\:(\w+)(?:\.(\w+))?)?/;
-      if (name && reg.test(name)) {
-        const [, d, e, a] = name.match(reg);
-        if (d) {
-          if (d == "bind") params.props.push(`${e}:this.${value}`);
-          if (d == "on") params.on.push(`${e}:this.${value}`);
-          if (d == "model") {
-            params.props.push(`value:this.${value}`);
-            params.on.push(`input(e){this.${value}=e.target.value}`);
-          }
-          if (d == "html") {
-            ch.push(`this._pT(this.${value})`);
-          }
-        } else {
-          throw new Error("仅支持/^v-(w+)(:w+)?((?:.w+)*)$/格式属性");
-        }
-      } else {
-        params.attrs.push(`${name}:"${value}"`);
-      }
-    });
-    optStr = Object.keys(params)
-      .filter((key) => {
-        return params[key].length > 0;
-      })
-      .map((key) => {
-        return `${key}:{${params[key].join(",")}}`;
-      });
-    if (childNodes && childNodes.length) {
-      ch = Array.from(childNodes)
-        .map((child) => parse(child))
-        .filter((child) => child);
-    }
-    return `h("${tagStr}", {${optStr}}, [${ch}])`;
-  } else if (isText(node) && node.textContent.trim()) {
-    let textContent = node.textContent.trim();
-    const reg = /\{\{.*?\}\}/;
-    return reg.test(textContent)
-      ? `"${textContent}".replace(/\{\{(.*?)\}\}/g,(a, b)=> this[b])`
-      : `"${textContent}"`;
-  } else {
-    return "";
-  }
-}
-
-function parser(node) {
-  console.log(parse(node), 'pares')
-  return new Function("h", `return ${parse(node)};`);
-}
-
-
-/***/ }),
-/* 6 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return h; });
-/* harmony import */ var _vnode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
-/* harmony import */ var _is_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-
-
-function addNS(data, children, sel) {
-    data.ns = 'http://www.w3.org/2000/svg';
-    if (sel !== 'foreignObject' && children !== undefined) {
-        for (let i = 0; i < children.length; ++i) {
-            const childData = children[i].data;
-            if (childData !== undefined) {
-                addNS(childData, children[i].children, children[i].sel);
-            }
-        }
-    }
-}
-function h(sel, b, c) {
-    var data = {};
-    var children;
-    var text;
-    var i;
-    if (c !== undefined) {
-        if (b !== null) {
-            data = b;
-        }
-        if (_is_js__WEBPACK_IMPORTED_MODULE_1__["array"](c)) {
-            children = c;
-        }
-        else if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](c)) {
-            text = c;
-        }
-        else if (c && c.sel) {
-            children = [c];
-        }
-    }
-    else if (b !== undefined && b !== null) {
-        if (_is_js__WEBPACK_IMPORTED_MODULE_1__["array"](b)) {
-            children = b;
-        }
-        else if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](b)) {
-            text = b;
-        }
-        else if (b && b.sel) {
-            children = [b];
-        }
-        else {
-            data = b;
-        }
-    }
-    if (children !== undefined) {
-        for (i = 0; i < children.length; ++i) {
-            if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](children[i]))
-                children[i] = Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])(undefined, undefined, undefined, children[i], undefined);
-        }
-    }
-    if (sel[0] === 's' && sel[1] === 'v' && sel[2] === 'g' &&
-        (sel.length === 3 || sel[3] === '.' || sel[3] === '#')) {
-        addNS(data, children, sel);
-    }
-    return Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])(sel, data, children, text, undefined);
-}
-;
-//# sourceMappingURL=h.js.map
-
-/***/ }),
-/* 7 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "vnode", function() { return vnode; });
-function vnode(sel, data, children, text, elm) {
-    const key = data === undefined ? undefined : data.key;
-    return { sel, data, children, text, elm, key };
-}
-//# sourceMappingURL=vnode.js.map
-
-/***/ }),
-/* 8 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "primitive", function() { return primitive; });
-const array = Array.isArray;
-function primitive(s) {
-    return typeof s === 'string' || typeof s === 'number';
-}
-//# sourceMappingURL=is.js.map
-
-/***/ }),
-/* 9 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
-/* harmony import */ var _vnode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
-/* harmony import */ var _is_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-/* harmony import */ var _htmldomapi_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
+/* harmony import */ var _vnode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
+/* harmony import */ var _is_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
+/* harmony import */ var _htmldomapi_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
 
 
 
@@ -936,7 +627,34 @@ function init(modules, domApi) {
 //# sourceMappingURL=init.js.map
 
 /***/ }),
-/* 10 */
+/* 6 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "vnode", function() { return vnode; });
+function vnode(sel, data, children, text, elm) {
+    const key = data === undefined ? undefined : data.key;
+    return { sel, data, children, text, elm, key };
+}
+//# sourceMappingURL=vnode.js.map
+
+/***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "primitive", function() { return primitive; });
+const array = Array.isArray;
+function primitive(s) {
+    return typeof s === 'string' || typeof s === 'number';
+}
+//# sourceMappingURL=is.js.map
+
+/***/ }),
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1007,7 +725,7 @@ const htmlDomApi = {
 //# sourceMappingURL=htmldomapi.js.map
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1043,7 +761,7 @@ const classModule = { create: updateClass, update: updateClass };
 //# sourceMappingURL=class.js.map
 
 /***/ }),
-/* 12 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1074,7 +792,7 @@ const propsModule = { create: updateProps, update: updateProps };
 //# sourceMappingURL=props.js.map
 
 /***/ }),
-/* 13 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1195,7 +913,7 @@ const styleModule = {
 //# sourceMappingURL=style.js.map
 
 /***/ }),
-/* 14 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1284,6 +1002,270 @@ const eventListenersModule = {
     destroy: updateEventListeners
 };
 //# sourceMappingURL=eventlisteners.js.map
+
+/***/ }),
+/* 13 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toVNode", function() { return toVNode; });
+/* harmony import */ var _vnode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
+/* harmony import */ var _htmldomapi_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
+
+
+function toVNode(node, domApi) {
+    const api = domApi !== undefined ? domApi : _htmldomapi_js__WEBPACK_IMPORTED_MODULE_1__["htmlDomApi"];
+    let text;
+    if (api.isElement(node)) {
+        const id = node.id ? '#' + node.id : '';
+        const cn = node.getAttribute('class');
+        const c = cn ? '.' + cn.split(' ').join('.') : '';
+        const sel = api.tagName(node).toLowerCase() + id + c;
+        const attrs = {};
+        const children = [];
+        let name;
+        let i, n;
+        const elmAttrs = node.attributes;
+        const elmChildren = node.childNodes;
+        for (i = 0, n = elmAttrs.length; i < n; i++) {
+            name = elmAttrs[i].nodeName;
+            if (name !== 'id' && name !== 'class') {
+                attrs[name] = elmAttrs[i].nodeValue;
+            }
+        }
+        for (i = 0, n = elmChildren.length; i < n; i++) {
+            children.push(toVNode(elmChildren[i], domApi));
+        }
+        return Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])(sel, { attrs }, children, undefined, node);
+    }
+    else if (api.isText(node)) {
+        text = api.getTextContent(node);
+        return Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])(undefined, undefined, undefined, text, node);
+    }
+    else if (api.isComment(node)) {
+        text = api.getTextContent(node);
+        return Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])('!', {}, [], text, node);
+    }
+    else {
+        return Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])('', {}, [], undefined, node);
+    }
+}
+//# sourceMappingURL=tovnode.js.map
+
+/***/ }),
+/* 14 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "attributesModule", function() { return attributesModule; });
+const xlinkNS = 'http://www.w3.org/1999/xlink';
+const xmlNS = 'http://www.w3.org/XML/1998/namespace';
+const colonChar = 58;
+const xChar = 120;
+function updateAttrs(oldVnode, vnode) {
+    var key;
+    var elm = vnode.elm;
+    var oldAttrs = oldVnode.data.attrs;
+    var attrs = vnode.data.attrs;
+    if (!oldAttrs && !attrs)
+        return;
+    if (oldAttrs === attrs)
+        return;
+    oldAttrs = oldAttrs || {};
+    attrs = attrs || {};
+    // update modified attributes, add new attributes
+    for (key in attrs) {
+        const cur = attrs[key];
+        const old = oldAttrs[key];
+        if (old !== cur) {
+            if (cur === true) {
+                elm.setAttribute(key, '');
+            }
+            else if (cur === false) {
+                elm.removeAttribute(key);
+            }
+            else {
+                if (key.charCodeAt(0) !== xChar) {
+                    elm.setAttribute(key, cur);
+                }
+                else if (key.charCodeAt(3) === colonChar) {
+                    // Assume xml namespace
+                    elm.setAttributeNS(xmlNS, key, cur);
+                }
+                else if (key.charCodeAt(5) === colonChar) {
+                    // Assume xlink namespace
+                    elm.setAttributeNS(xlinkNS, key, cur);
+                }
+                else {
+                    elm.setAttribute(key, cur);
+                }
+            }
+        }
+    }
+    // remove removed attributes
+    // use `in` operator since the previous `for` iteration uses it (.i.e. add even attributes with undefined value)
+    // the other option is to remove all attributes with value == undefined
+    for (key in oldAttrs) {
+        if (!(key in attrs)) {
+            elm.removeAttribute(key);
+        }
+    }
+}
+const attributesModule = { create: updateAttrs, update: updateAttrs };
+//# sourceMappingURL=attributes.js.map
+
+/***/ }),
+/* 15 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return h; });
+/* harmony import */ var _vnode_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
+/* harmony import */ var _is_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
+
+
+function addNS(data, children, sel) {
+    data.ns = 'http://www.w3.org/2000/svg';
+    if (sel !== 'foreignObject' && children !== undefined) {
+        for (let i = 0; i < children.length; ++i) {
+            const childData = children[i].data;
+            if (childData !== undefined) {
+                addNS(childData, children[i].children, children[i].sel);
+            }
+        }
+    }
+}
+function h(sel, b, c) {
+    var data = {};
+    var children;
+    var text;
+    var i;
+    if (c !== undefined) {
+        if (b !== null) {
+            data = b;
+        }
+        if (_is_js__WEBPACK_IMPORTED_MODULE_1__["array"](c)) {
+            children = c;
+        }
+        else if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](c)) {
+            text = c;
+        }
+        else if (c && c.sel) {
+            children = [c];
+        }
+    }
+    else if (b !== undefined && b !== null) {
+        if (_is_js__WEBPACK_IMPORTED_MODULE_1__["array"](b)) {
+            children = b;
+        }
+        else if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](b)) {
+            text = b;
+        }
+        else if (b && b.sel) {
+            children = [b];
+        }
+        else {
+            data = b;
+        }
+    }
+    if (children !== undefined) {
+        for (i = 0; i < children.length; ++i) {
+            if (_is_js__WEBPACK_IMPORTED_MODULE_1__["primitive"](children[i]))
+                children[i] = Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])(undefined, undefined, undefined, children[i], undefined);
+        }
+    }
+    if (sel[0] === 's' && sel[1] === 'v' && sel[2] === 'g' &&
+        (sel.length === 3 || sel[3] === '.' || sel[3] === '#')) {
+        addNS(data, children, sel);
+    }
+    return Object(_vnode_js__WEBPACK_IMPORTED_MODULE_0__["vnode"])(sel, data, children, text, undefined);
+}
+;
+//# sourceMappingURL=h.js.map
+
+/***/ }),
+/* 16 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return parser; });
+function isText(node) {
+  return node && node.nodeType == 3;
+};
+function isElement(node) {
+  return node && node.nodeType == 1;
+};
+function parse(node) {
+  if (isElement(node)) {
+    const { tagName, attributes, childNodes } = node;
+    const params = {
+      props: [],
+      attrs: [],
+      on: [],
+      hook: []
+    };
+    let optStr = "", ch = [], fitic,
+      tagStr = tagName ? tagName.toLowerCase() : "", dec = '';
+
+    Array.from(attributes).forEach((attr) => {
+      const { name, value } = attr;
+      const reg = /v-(\w+)(?:\:(\w+)(?:\.(\w+))?)?/;
+      if (name && reg.test(name)) {
+        const [, d, e, a] = name.match(reg);
+        if (d) {
+          if (d == "bind") params.props.push(`${e}:vm["${value}"]`);
+          if (d == "on") params.on.push(`${e}:vm["${value}"].bind(vm)`);
+          if (d == "model") {
+            params.props.push(`value:vm["${value}"]`);
+            params.on.push(`input:(e)=>{vm["${value}"]=e.target.value}`)
+          }
+          if (d === 'html') {
+            params.hook.push(`update(vn){vn.elm.innerHTML=vm["${value}"]}`)
+            params.hook.push(`insert(vn){vn.elm.innerHTML=vm["${value}"]}`)
+          }
+
+        } else {
+          throw new Error("仅支持/^v-(w+)(:w+)?((?:.w+)*)$/格式属性");
+        }
+      } else {
+        params.attrs.push(`${name}:"${value}"`);
+        if (name == 'class') dec += '.' + value.split(' ').join('.')
+        if (name == 'id') dec = '#' + value + dec
+      }
+    });
+    optStr = Object.keys(params)
+      .filter((key) => {
+        return params[key].length > 0;
+      })
+      .map((key) => {
+        return params[key] instanceof Array ? `${key}:{${params[key].join(",")}}` : `${key}:${params[key]}`;
+      })
+    if (childNodes && childNodes.length) {
+      ch = Array.from(childNodes)
+        .map((child) => parse(child))
+    }
+    return `h("${tagStr + dec}", {${optStr}}, [${ch}])`;
+  } else if (isText(node) && node.textContent.trim()) {
+    let textContent = node.textContent.trim()
+    const reg = /\{\{.*?\}\}/;
+    return reg.test(textContent) ? `"${textContent}".replace(/\{\{(.*?)\}\}/g,(a, b)=> vm[b])` : `"${textContent}"`;
+  } else {
+    return ""
+  }
+};
+
+function parser(node) {
+  try {
+    return new Function("h", `var vm=this;return ${parse(node)}`);
+  } catch (err) {
+    console.log(err, 'err')
+  }
+
+}
 
 /***/ })
 /******/ ]);
