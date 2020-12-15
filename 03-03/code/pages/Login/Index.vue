@@ -52,9 +52,11 @@
 </template>
 
 <script>
+const Cookie = process.client ? require("js-cookie") : undefined;
 import { login, register } from "@/service/user";
 export default {
   name: "Login",
+  middleware: 'noauth',
   data() {
     return {
       user: {
@@ -74,9 +76,14 @@ export default {
   methods: {
     async login() {
       try {
-        const data = await (this.isLogin ? login : register)({
-          user: { ...this.user },
+        const res = await (this.isLogin ? login : register)({
+          user: this.user,
         });
+        const { user } = res.data;
+        Cookie.set("user", user);
+        Cookie.set('auth', user.token)
+        this.$store.commit("setUser", user);
+        this.$router.push("/");
       } catch (err) {
         this.isError = true;
         this.errors = err.response.data.errors;

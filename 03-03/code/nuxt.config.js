@@ -1,6 +1,7 @@
 export default {
   router: {
     linkExactActiveClass: "text-primary",
+    linkActiveClass: "active",
     extendRoutes(routes, resolve) {
       routes.splice(0);
       routes.push({
@@ -31,6 +32,16 @@ export default {
                 path: "/register",
                 name: "Register",
                 component: resolve(__dirname, 'pages/Login')
+            },
+            {
+              path: "/article",
+              name: 'Article',
+              component: resolve(__dirname, 'pages/Article')
+            },
+            {
+              name: "Profile",
+              path: "/profile",
+              component: resolve(__dirname, 'pages/Profile')
             }
         ]
       });

@@ -13,54 +13,64 @@
           <div class="feed-toggle">
             <ul class="nav nav-pills outline-active">
               <li class="nav-item">
-                <a class="nav-link disabled" href="">Your Feed</a>
+                <nuxt-link
+                  :to="getQuery({ page: 1, tab: 'personal' })"
+                  exact
+                  class="nav-link"
+                  >Your Feed</nuxt-link
+                >
               </li>
               <li class="nav-item">
-                <a class="nav-link active" href="">Global Feed</a>
+                <nuxt-link
+                  :to="getQuery({ page: 1, tab: 'global' })"
+                  class="nav-link"
+                  exact
+                  >Global Feed</nuxt-link
+                >
+              </li>
+              <li v-if="tag && tag.trim()" class="nav-item">
+                <nuxt-link
+                  :to="getQuery({ page: 1, tab: 'tag' })"
+                  class="nav-link"
+                  exact
+                  >#{{ tag }}</nuxt-link
+                >
               </li>
             </ul>
           </div>
 
-          <div class="article-preview">
+          <div v-for="(art, i) in articles" :key="i" class="article-preview">
             <div class="article-meta">
-              <a href="profile.html"
-                ><img src="http://i.imgur.com/Qr71crq.jpg"
-              /></a>
-              <div class="info">
-                <a href="" class="author">Eric Simons</a>
-                <span class="date">January 20th</span>
-              </div>
-              <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                <i class="ion-heart"></i> 29
+              <nuxt-link
+                :to="{
+                  name: 'Profile',
+                  params: {
+                    name: art.username,
+                  },
+                }"
+              >
+                <img :src="art.author.image" />
+                <div class="info">
+                  <a href="javascript:void();" class="author">{{
+                    art.author.username
+                  }}</a>
+                  <span class="date">{{ art.createdAt }}</span>
+                </div>
+              </nuxt-link>
+              <button
+                class="btn btn-outline-primary btn-sm pull-xs-right"
+                :class="{ active: art.favorited }"
+                @click="() => favorited(art)"
+              >
+                <i class="ion-heart"></i> {{ art.favoritesCount }}
               </button>
             </div>
             <a href="" class="preview-link">
-              <h1>How to build webapps that scale</h1>
-              <p>This is the description for the post.</p>
-              <span>Read more...</span>
-            </a>
-          </div>
-
-          <div class="article-preview">
-            <div class="article-meta">
-              <a href="profile.html"
-                ><img src="http://i.imgur.com/N4VcUeJ.jpg"
-              /></a>
-              <div class="info">
-                <a href="" class="author">Albert Pai</a>
-                <span class="date">January 20th</span>
-              </div>
-              <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                <i class="ion-heart"></i> 32
-              </button>
-            </div>
-            <a href="" class="preview-link">
-              <h1>
-                The song you won't ever stop singing. No matter how hard you
-                try.
-              </h1>
-              <p>This is the description for the post.</p>
-              <span>Read more...</span>
+              <h1>{{ art.title }}</h1>
+              <p>{{ art.description }}</p>
+              <nuxt-link :to="{ name: 'Article', params: { slug: art.slug } }">
+                Read more...
+              </nuxt-link>
             </a>
           </div>
         </div>
@@ -70,58 +80,91 @@
             <p>Popular Tags</p>
 
             <div class="tag-list">
-              <a href="" class="tag-pill tag-default">programming</a>
-              <a href="" class="tag-pill tag-default">javascript</a>
-              <a href="" class="tag-pill tag-default">emberjs</a>
-              <a href="" class="tag-pill tag-default">angularjs</a>
-              <a href="" class="tag-pill tag-default">react</a>
-              <a href="" class="tag-pill tag-default">mean</a>
-              <a href="" class="tag-pill tag-default">node</a>
-              <a href="" class="tag-pill tag-default">rails</a>
+              <nuxt-link
+                v-for="(ta, i) in tags"
+                :key="i"
+                class="tag-pill tag-default"
+                :to="getQuery({ tag: ta })"
+                >{{ ta }}</nuxt-link
+              >
             </div>
           </div>
         </div>
+
+        <ul class="pagination">
+          <li
+            v-for="n in pageCount"
+            :key="n"
+            class="page-item"
+            :class="{ active: page == n }"
+          >
+            <nuxt-link :to="getQuery({ page: n })" class="page-link">{{
+              n
+            }}</nuxt-link>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { getList } from "@/service/article";
+import { getList, getTags, favorite, unfavorite } from "@/service/article";
 export default {
   name: "HomePage",
   async asyncData(context) {
-    let data = {};
     try {
-      const res = await getList();
-      data = res.data;
+      const limit = 20;
+      let { tag = "", page = 1, tab = "global" } = context.query;
+      const [tagData, data] = await Promise.all([
+        getTags(),
+        getList({
+          tag,
+          limit,
+          offset: (page - 1) * limit,
+        }),
+      ]);
+      const tags = tagData.data.tags;
+      let { articles, articlesCount } = data.data;
+      console.log(tab)
+      return {
+        tag,
+        limit,
+        page,
+        articlesCount,
+        articles,
+        tags,
+        tab,
+      };
     } catch (err) {
-      console.log(err);
+      console.log(err, "err");
+      return {};
     }
-    return data;
   },
-  data() {
-    return {
-      query: {
-        tag: "",
-        author: "",
-        favorited: "",
-        limit: 20,
-        offset: 0,
-      },
-      articles: [],
-      articalCount: 0
-    };
+  watchQuery: ["page", "tag", "tab"],
+  computed: {
+    pageCount() {
+      return Math.ceil(this.articlesCount / this.limit);
+    },
+  },
+  watch: {
+    articles() {
+      this.$nextTick(() => {
+        window.scrollTo(0, 0);
+      });
+    },
   },
   methods: {
-    async getList() {
-      try {
-        const {data:{articles, articalCount}} = await getList(this.query);
-        this.articles = articles
-        this.articalCount = articalCount
-      }catch(err) {
-        console.log(err.response.data)
-      }
+    getQuery(obj) {
+      let { tag, page, tab } = this;
+      return {
+        name: "Home",
+        query: Object.assign({ tag, page }, obj),
+      };
+    },
+    favorited(obj) {
+      (obj.favorited ? unfavorite : favorite)(obj.slug);
+      obj.favorited = !obj.favorited;
     },
   },
 };
