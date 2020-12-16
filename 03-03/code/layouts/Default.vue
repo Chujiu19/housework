@@ -8,33 +8,38 @@
             <!-- Add "active" class when you're on that page" -->
             <nuxt-link class="nav-link" to="/">Home</nuxt-link>
           </li>
-          <li class="nav-item">
-            <nuxt-link class="nav-link" to="/edit"
-              ><i class="ion-compose"></i>&nbsp;New Post</nuxt-link
-            >
-          </li>
           <li v-if="!user" class="nav-item">
             <nuxt-link class="nav-link" to="/login">Sign up/Sign in</nuxt-link>
           </li>
           <template v-else>
+            <li class="nav-item">
+              <nuxt-link class="nav-link" to="/edit"
+                ><i class="ion-compose"></i>&nbsp;New Post</nuxt-link
+              >
+            </li>
             <li class="nav-item">
               <nuxt-link class="nav-link" to="/settings"
                 ><i class="ion-gear-a"></i>&nbsp;Settings</nuxt-link
               >
             </li>
             <li class="nav-item">
-              <nuxt-link class="nav-link" :to="{
+              <nuxt-link
+                class="nav-link"
+                :to="{
                   name: 'Profile',
-                  params: {
-                    name: user.username,
+                  query: {
+                    username: user.username,
                   },
-                }">
-                <img :src="user.image || defaultImg" alt="" class="user-pic" />
+                }"
+              >
+                <img :src="user.image" alt="" class="user-pic" />
                 {{ user.username }}
               </nuxt-link>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="javascript:void(0);" @click="signOut">Sign out</a>
+              <a class="nav-link" href="javascript:void(0);" @click="signOut"
+                >Sign out</a
+              >
             </li>
           </template>
         </ul>
@@ -57,11 +62,6 @@
 <script>
 const Cookie = process.client ? require("js-cookie") : undefined;
 export default {
-  data() {
-    return {
-      defaultImg: require("~/assets/img/avater.jpg"),
-    };
-  },
   computed: {
     user() {
       return this.$store.state.user;
@@ -69,11 +69,11 @@ export default {
   },
   methods: {
     signOut() {
-      this.$store.commit('setUser', null)
-      Cookie.remove('user')
-      this.$router.push('/login')
-    }
-  }
+      this.$store.commit("setUser", null);
+      Cookie.remove("user");
+      this.$router.push("/login");
+    },
+  },
 };
 </script>
 

@@ -60,9 +60,9 @@ export default {
   data() {
     return {
       user: {
-        username: "chujiu",
-        email: "w19191999@163.com",
-        password: "weiguo333",
+        username: null,
+        email: null,
+        password: null,
       },
       isError: false,
       errors: null,

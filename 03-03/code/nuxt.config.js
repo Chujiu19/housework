@@ -9,9 +9,10 @@ export default {
         component: resolve(__dirname, "layouts/Default"),
         children: [
             {
-                path: "",
+                path: "/",
                 name: "Home",
-                component: resolve(__dirname, 'pages/Home')
+                component: resolve(__dirname, 'pages/Home'),
+                default: true
             },
             {
                 path: "/edit",
@@ -34,17 +35,20 @@ export default {
                 component: resolve(__dirname, 'pages/Login')
             },
             {
-              path: "/article",
+              path: "/article/:slug",
               name: 'Article',
+              props: true,
               component: resolve(__dirname, 'pages/Article')
             },
             {
               name: "Profile",
               path: "/profile",
+              props: true,
               component: resolve(__dirname, 'pages/Profile')
             }
         ]
       });
     },
   },
+  plugins: ['~/plugins/request.js'],
 };
