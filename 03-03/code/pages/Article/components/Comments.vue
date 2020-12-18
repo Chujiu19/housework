@@ -40,7 +40,7 @@
           /></nuxt-link>
           &nbsp;
           <a href="" class="comment-author">{{ comment.author.username }}</a>
-          <span class="date-posted">{{ comment.createdAt }}</span>
+          <span class="date-posted">{{ comment.createdAt | format }}</span>
         </div>
       </div>
     </div>
@@ -74,7 +74,7 @@ export default {
       let comments = res.data.comments;
       this.comments = comments;
     } catch (err) {
-        console.log(err, 'err')
+      console.log(err, "err");
     }
   },
   methods: {

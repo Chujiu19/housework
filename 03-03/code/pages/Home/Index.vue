@@ -55,7 +55,7 @@
                   <a href="javascript:void();" class="author">{{
                     art.author.username
                   }}</a>
-                  <span class="date">{{ art.createdAt }}</span>
+                  <span class="date">{{ art.createdAt | format }}</span>
                 </div>
               </nuxt-link>
               <button

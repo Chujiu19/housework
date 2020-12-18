@@ -10,7 +10,7 @@
       ><img :src="article.author.image" />
       <div class="info">
         {{ article.author.username }}
-        <span class="date">{{ article.createdAt }}</span>
+        <span class="date">{{ article.createdAt | format }}</span>
       </div>
     </nuxt-link>
     <button class="btn btn-sm btn-outline-secondary">
